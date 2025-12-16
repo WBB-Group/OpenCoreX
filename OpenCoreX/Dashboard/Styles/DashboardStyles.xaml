@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:funcs="clr-namespace:OpenCoreX.Dashboard.Functions">
@@ -6,7 +5,6 @@
     <!-- Converters -->
     <funcs:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
-    <!-- Color Brushes -->
     <!-- Color Brushes -->
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#050505" />
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#0A0A0A" />
@@ -162,6 +160,63 @@
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12" />
         <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+    <!-- CheckBox Style -->
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="#D4D4D8" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Background" Value="#18181B" />
+        <Setter Property="BorderBrush" Value="#3F3F46" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="8,0,0,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="CheckBoxBorder" 
+                                Width="18" Height="18" 
+                                CornerRadius="4" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                VerticalAlignment="Center">
+                            <Path x:Name="CheckMark" 
+                                  Data="M4,9 L8,13 L14,5" 
+                                  Stroke="White" 
+                                  StrokeThickness="2" 
+                                  Visibility="Collapsed" 
+                                  HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center"/>
+                        </Border>
+                        <ContentPresenter Grid.Column="1" 
+                                          Margin="{TemplateBinding Padding}" 
+                                          VerticalAlignment="Center" 
+                                          HorizontalAlignment="Left" 
+                                          RecognizesAccessKey="True"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="CheckBoxBorder" Property="Background" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="#6366F1" />
+                            <Setter TargetName="CheckBoxBorder" Property="Background" Value="#27272A" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
 </ResourceDictionary>
