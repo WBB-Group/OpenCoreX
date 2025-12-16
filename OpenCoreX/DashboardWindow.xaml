@@ -6,12 +6,14 @@
         xmlns:overview="clr-namespace:OpenCoreX.Dashboard.Overview"
         mc:Ignorable="d"
         Title="OpenCoreX Diagnostics"
-        Width="1320"
-        Height="860"
-        MinWidth="1100"
-        MinHeight="800"
+        Width="1320" Height="860"
+        MinWidth="1100" MinHeight="800"
         WindowStartupLocation="CenterScreen"
-        Background="#080C15">
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResizeWithGrip">
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -20,311 +22,219 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <Border Background="{StaticResource WindowBackgroundBrush}" CornerRadius="12" BorderBrush="#333" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32" /> <!-- Custom Title Bar -->
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <!-- Navigation Panel -->
-        <Border Grid.Column="0" Background="#0D111B" Padding="24" BorderBrush="#10182A" BorderThickness="0,0,1,0">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,24">
-                    <TextBlock Text="OpenCoreX" FontSize="26" FontWeight="SemiBold" Foreground="White" />
-                    <TextBlock Text="Diagnostics Toolkit" Foreground="{StaticResource SubtleTextBrush}" Margin="0,4,0,0" />
+            <!-- Custom Title Bar -->
+            <Grid Grid.Row="0" MouseDown="TitleBar_MouseDown" Background="Transparent">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- App Icon/Title -->
+                <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="OpenCoreX" FontSize="12" FontWeight="SemiBold" Foreground="#71717A" />
                 </StackPanel>
+                
+                <!-- Window Controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="—" Style="{StaticResource TitleBarButtonStyle}" Click="MinimizeButton_Click" />
+                    <Button Content="☐" Style="{StaticResource TitleBarButtonStyle}" Click="MaximizeButton_Click" />
+                    <Button Content="✕" Style="{StaticResource CloseButtonStyle}" Click="CloseButton_Click" />
+                </StackPanel>
+            </Grid>
 
-                <StackPanel DockPanel.Dock="Bottom" Margin="0,24,0,0">
-                    <TextBlock Text="System Integrity" Foreground="{StaticResource SubtleTextBrush}" FontSize="12" />
-                    <ProgressBar Value="{Binding SystemIntegrity}" Height="6" Margin="0,6,0,10" Foreground="{StaticResource AccentBrush}" Background="#1D2331" />
-                    <Border Background="#101628" CornerRadius="10" Padding="12">
+            <!-- Main Content Grid -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="260" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Sidebar -->
+                <Border Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}" Padding="24" CornerRadius="0,0,0,12">
+                    <DockPanel LastChildFill="True">
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,40">
+                            <TextBlock Text="OpenCoreX" FontSize="24" FontWeight="Bold" Foreground="White">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect Color="#6366F1" BlurRadius="15" ShadowDepth="0" Opacity="0.4"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <TextBlock Text="DASHBOARD"  FontSize="11" FontWeight="Bold" Foreground="{StaticResource SubtleTextBrush}" Margin="2,4,0,0" Opacity="0.7" />
+                        </StackPanel>
+
                         <StackPanel>
-                            <TextBlock Text="Last Deep Scan" Foreground="{StaticResource SubtleTextBrush}" FontSize="12" />
-                            <TextBlock Text="{Binding LastDeepScan}" Foreground="White" FontWeight="SemiBold" FontSize="14" />
+                            <TextBlock Text="MENU" Foreground="#52525B" FontSize="11" FontWeight="Bold" Margin="4,0,0,12" />
+                            <Button Content="Overview" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="0" />
+                            <Button Content="Hardware" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="1" />
+                            <Button Content="Processes" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="2" />
+                            <Button Content="Integrity" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="3" />
+                            <Button Content="Diagnostics" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="4" />
+                            <Button Content="Extensions" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="5" />
                         </StackPanel>
-                    </Border>
-                </StackPanel>
+                        
+                    </DockPanel>
+                </Border>
 
-                <StackPanel>
-                    <TextBlock Text="Navigation" Foreground="{StaticResource SubtleTextBrush}" FontSize="12" Margin="0,0,0,10" />
-                    <Button Content="Dashboard" Style="{StaticResource NavButtonStyle}" />
-                    <Button Content="Hardware" Style="{StaticResource NavButtonStyle}" />
-                    <Button Content="Processes" Style="{StaticResource NavButtonStyle}" />
-                    <Button Content="Integrity Checks" Style="{StaticResource NavButtonStyle}" />
-                    <Button Content="Diagnostics" Style="{StaticResource NavButtonStyle}" />
-                    <Button Content="Extensions" Style="{StaticResource NavButtonStyle}" />
-                </StackPanel>
-            </DockPanel>
-        </Border>
+                <!-- Content Area -->
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
-        <!-- Content Area with ScrollViewer to prevent crash and fix content cutoff -->
-        <Border Grid.Column="1" Background="{StaticResource WindowBackgroundBrush}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="28">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" MinHeight="200" />
-                    </Grid.RowDefinitions>
-
-                    <!-- Header -->
-                    <Grid Grid.Row="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="280" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock Text="System Overview" FontSize="28" FontWeight="SemiBold" Foreground="White" />
-                            <TextBlock Text="Live summary of system wellbeing and hardware posture" Foreground="{StaticResource SubtleTextBrush}" Margin="0,4,0,0" />
+                        <!-- Header -->
+                        <StackPanel Grid.Row="0" Margin="0,0,0,32">
+                            <TextBlock Text="System Overview" FontSize="26" FontWeight="SemiBold" Foreground="White" />
+                            <TextBlock Text="Real-time monitoring and diagnostics" Foreground="{StaticResource SubtleTextBrush}" Margin="0,4,0,0" />
                         </StackPanel>
-                        <Border Grid.Column="1" Background="#0F1623" CornerRadius="12" Padding="14" Margin="18,0,0,0">
-                            <DockPanel>
-                                <TextBlock Text="Quick Find" Foreground="{StaticResource SubtleTextBrush}" VerticalAlignment="Center" />
-                                <TextBox DockPanel.Dock="Right"
-                                     Width="168"
-                                     Background="#141C2C"
-                                     Foreground="White"
-                                     BorderBrush="#232E44"
-                                     BorderThickness="1"
-                                     Padding="6"
-                                     Text=""
-                                     ToolTip="Search modules" Height="25" />
-                            </DockPanel>
-                        </Border>
-                    </Grid>
 
-                    <!-- Metric Cards - LIVE DATA -->
-                    <UniformGrid Grid.Row="1" Columns="4" Margin="0,24,0,0">
-                        <Border Style="{StaticResource MetricCard}">
-                            <StackPanel>
-                                <TextBlock Text="CPU Health" Foreground="{StaticResource SubtleTextBrush}" />
-                                <TextBlock Text="{Binding CpuHealth}" Foreground="White" FontSize="22" FontWeight="SemiBold" />
-                                <ProgressBar Value="{Binding CpuHealthPercent}" Height="6" Margin="0,10,0,0" Foreground="{StaticResource AccentBrush}" Background="#1C2232" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource MetricCard}">
-                            <StackPanel>
-                                <TextBlock Text="Thermals" Foreground="{StaticResource SubtleTextBrush}" />
-                                <TextBlock Text="{Binding ThermalStatus}" Foreground="White" FontSize="22" FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding PeakTemperature}" Foreground="{StaticResource SubtleTextBrush}" Margin="0,8,0,0" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource MetricCard}">
-                            <StackPanel>
-                                <TextBlock Text="Memory Usage" Foreground="{StaticResource SubtleTextBrush}" />
-                                <TextBlock Text="{Binding MemoryUsagePercent, StringFormat={}{0}%}" Foreground="White" FontSize="22" FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding MemoryUsageDetails}" Foreground="{StaticResource SubtleTextBrush}" Margin="0,8,0,0" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource MetricCard}" Margin="0">
-                            <StackPanel>
-                                <TextBlock Text="Uptime" Foreground="{StaticResource SubtleTextBrush}" />
-                                <TextBlock Text="{Binding Uptime}" Foreground="White" FontSize="22" FontWeight="SemiBold" />
-                                <TextBlock Text="since last reboot" Foreground="{StaticResource SubtleTextBrush}" Margin="0,8,0,0" />
-                            </StackPanel>
-                        </Border>
-                    </UniformGrid>
+                        <!-- Tabs -->
+                        <TabControl Grid.Row="1" x:Name="MainTabs" Style="{StaticResource DashboardTabControlStyle}" BorderThickness="0" Background="Transparent">
+                            <TabControl.ItemContainerStyle>
+                                <Style TargetType="TabItem">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </Style>
+                            </TabControl.ItemContainerStyle>
 
-                    <!-- Alert banner -->
-                    <Border Grid.Row="2" Margin="0,24,0,24" Padding="18" Background="#10192A" CornerRadius="14" BorderBrush="#1E2A40" BorderThickness="1">
-                        <DockPanel>
-                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                                <Ellipse Width="12" Height="12" Fill="#FFC857" Margin="0,0,8,0" />
-                                <TextBlock Text="Pending integrity verification" Foreground="White" FontWeight="SemiBold" />
-                            </StackPanel>
-                            <TextBlock Text="Run a deep integrity sweep to validate firmware, drivers, and kernel hooks." Foreground="{StaticResource SubtleTextBrush}" Margin="16,0,0,0" />
-                        </DockPanel>
-                    </Border>
-
-                    <!-- Tabs -->
-                    <Border Grid.Row="3" Background="#0D121D" CornerRadius="18" Padding="20" BorderBrush="#161F31" BorderThickness="1" MinHeight="200">
-                        <TabControl Style="{StaticResource DashboardTabControlStyle}">
-                            <TabItem Header="Overview" Style="{StaticResource DashboardTabItemStyle}">
-                                <Grid Margin="0,16,0,0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    
-                                    <!-- Platform Info Cards - LIVE DATA -->
-                                    <UniformGrid Grid.Row="0" Columns="3" Margin="0,0,0,16">
-                                        <Border Style="{StaticResource InfoCard}">
+                            <!-- 0: Overview -->
+                            <TabItem Header="Overview">
+                                <StackPanel>
+                                    <!-- Metric Cards -->
+                                    <UniformGrid Columns="4" Margin="0,0,0,24">
+                                        <Border Style="{StaticResource MetricCard}">
                                             <StackPanel>
-                                                <TextBlock Text="Platform" Foreground="{StaticResource SubtleTextBrush}" />
-                                                <TextBlock Text="{Binding PlatformName}" Foreground="White" TextWrapping="Wrap" />
+                                                <Grid Margin="0,0,0,16">
+                                                    <TextBlock Text="GPU" Foreground="{StaticResource SubtleTextBrush}" FontSize="13" FontWeight="SemiBold" />
+                                                    <Path Data="M13,2L3,14H12L11,22L21,10H12L13,2Z" Fill="{StaticResource AccentBrush}" HorizontalAlignment="Right" Width="12" Height="12" Stretch="Uniform" Opacity="0.8"/>
+                                                </Grid>
+                                                <TextBlock Text="{Binding GpuUsagePercent, StringFormat={}{0}%}" Foreground="White" FontSize="28" FontWeight="Bold" />
+                                                <ProgressBar Value="{Binding GpuUsagePercent}" Height="4" Margin="0,16,0,0" Foreground="{StaticResource AccentBrush}" Background="#1F1F1F" BorderThickness="0" />
                                             </StackPanel>
                                         </Border>
-                                        <Border Style="{StaticResource InfoCard}">
+                                        <Border Style="{StaticResource MetricCard}">
                                             <StackPanel>
-                                                <TextBlock Text="Kernel" Foreground="{StaticResource SubtleTextBrush}" />
-                                                <TextBlock Text="{Binding KernelVersion}" Foreground="White" />
+                                                <TextBlock Text="MEMORY" Foreground="{StaticResource SubtleTextBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,16" />
+                                                <TextBlock Text="{Binding MemoryUsagePercent, StringFormat={}{0}%}" Foreground="White" FontSize="28" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding MemoryUsageDetails}" Foreground="{StaticResource SubtleTextBrush}" FontSize="12" Margin="0,8,0,0" />
                                             </StackPanel>
                                         </Border>
-                                        <Border Style="{StaticResource InfoCard}" Margin="0">
+                                        <Border Style="{StaticResource MetricCard}">
                                             <StackPanel>
-                                                <TextBlock Text="Secure Boot" Foreground="{StaticResource SubtleTextBrush}" />
-                                                <TextBlock Text="{Binding SecureBootStatus}" Foreground="#7FE29B" FontWeight="SemiBold" />
+                                                <TextBlock Text="CPU" Foreground="{StaticResource SubtleTextBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,16" />
+                                                <TextBlock Text="{Binding CpuUsagePercent, StringFormat={}{0}%}" Foreground="White" FontSize="28" FontWeight="Bold" />
+                                                <ProgressBar Value="{Binding CpuUsagePercent}" Height="4" Margin="0,16,0,0" Foreground="{StaticResource AccentBrush}" Background="#1F1F1F" BorderThickness="0" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource MetricCard}" Margin="0">
+                                            <StackPanel>
+                                                <TextBlock Text="UPTIME" Foreground="{StaticResource SubtleTextBrush}" FontSize="11" FontWeight="Bold" Margin="0,0,0,16" />
+                                                <TextBlock Text="{Binding Uptime}" Foreground="White" FontSize="24" FontWeight="SemiBold" />
                                             </StackPanel>
                                         </Border>
                                     </UniformGrid>
 
-                                    <!-- Main Content Grid -->
-                                    <Grid Grid.Row="1">
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="1.1*" />
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="1*" />
                                         </Grid.ColumnDefinitions>
-                                        
-                                        <!-- Active Processes Panel -->
-                                        <Border Style="{StaticResource PanelCard}">
+
+                                        <!-- GPU Details -->
+                                        <Border Style="{StaticResource PanelCard}" Margin="0,0,16,0">
                                             <StackPanel>
-                                                <TextBlock Text="Active Processes" Foreground="White" FontSize="16" FontWeight="SemiBold" />
+                                                <TextBlock Text="Active Hardware" Foreground="White" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,20"/>
                                                 
-                                                <!-- Header Row -->
-                                                <Border Margin="0,12,0,0" Background="#101728" Padding="12" CornerRadius="10">
+                                                <Border Background="#0A0A0A" CornerRadius="8" Padding="16" Margin="0,0,0,12" BorderBrush="#1F1F1F" BorderThickness="1">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="80" />
-                                                            <ColumnDefinition Width="110" />
+                                                            <ColumnDefinition Width="Auto" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="Process" Grid.Column="0" Foreground="{StaticResource SubtleTextBrush}" />
-                                                        <TextBlock Text="CPU" Grid.Column="1" Foreground="{StaticResource SubtleTextBrush}" />
-                                                        <TextBlock Text="Memory" Grid.Column="2" Foreground="{StaticResource SubtleTextBrush}" />
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding GraphicsCard}" Foreground="White" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="Primary Graphics Adapter" Foreground="#52525B" FontSize="12" Margin="0,2,0,0"/>
+                                                        </StackPanel>
+                                                        <Border Grid.Column="1" Background="#18181B" CornerRadius="4" Padding="8 4" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding GpuUsagePercent, StringFormat={}{0}% Load}" Foreground="#A1A1AA" FontSize="11" />
+                                                        </Border>
                                                     </Grid>
                                                 </Border>
-                                                
-                                                <!-- Process List -->
-                                                <StackPanel Margin="0,12,0,0">
-                                                    <Grid Margin="0,0,0,10">
+
+                                                <Border Background="#0A0A0A" CornerRadius="8" Padding="16" BorderBrush="#1F1F1F" BorderThickness="1">
+                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="80" />
-                                                            <ColumnDefinition Width="110" />
+                                                            <ColumnDefinition Width="Auto" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="explorer.exe" Grid.Column="0" Foreground="White" />
-                                                        <TextBlock Text="3%" Grid.Column="1" Foreground="{StaticResource SubtleTextBrush}" />
-                                                        <TextBlock Text="220 MB" Grid.Column="2" Foreground="{StaticResource SubtleTextBrush}" />
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding ProcessorInfo}" Foreground="White" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="Central Processor" Foreground="#52525B" FontSize="12" Margin="0,2,0,0"/>
+                                                        </StackPanel>
+                                                         <Border Grid.Column="1" Background="#18181B" CornerRadius="4" Padding="8 4" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding CpuUsagePercent, StringFormat={}{0}% Load}" Foreground="#A1A1AA" FontSize="11" />
+                                                        </Border>
                                                     </Grid>
-                                                    <Grid Margin="0,0,0,10">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="80" />
-                                                            <ColumnDefinition Width="110" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="code.exe" Grid.Column="0" Foreground="White" />
-                                                        <TextBlock Text="11%" Grid.Column="1" Foreground="{StaticResource SubtleTextBrush}" />
-                                                        <TextBlock Text="850 MB" Grid.Column="2" Foreground="{StaticResource SubtleTextBrush}" />
-                                                    </Grid>
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="80" />
-                                                            <ColumnDefinition Width="110" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="opencorex.exe" Grid.Column="0" Foreground="White" />
-                                                        <TextBlock Text="4%" Grid.Column="1" Foreground="{StaticResource SubtleTextBrush}" />
-                                                        <TextBlock Text="150 MB" Grid.Column="2" Foreground="{StaticResource SubtleTextBrush}" />
-                                                    </Grid>
-                                                </StackPanel>
+                                                </Border>
                                             </StackPanel>
                                         </Border>
-                                        
-                                        <!-- Recent Events Panel -->
-                                        <Border Grid.Column="1" Style="{StaticResource PanelCard}" Margin="18,0,0,0">
+
+                                        <!-- System Status -->
+                                        <Border Grid.Column="1" Style="{StaticResource PanelCard}" Margin="0">
                                             <StackPanel>
-                                                <TextBlock Text="Recent Events" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                                                
-                                                <Border Style="{StaticResource EventCard}" Margin="0,12,0,10">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Firmware Guard" Foreground="White" FontWeight="SemiBold" />
-                                                        <TextBlock Text="UEFI region validated with no mismatches." Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap" />
-                                                    </StackPanel>
-                                                </Border>
+                                                <TextBlock Text="Status" Foreground="White" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,20"/>
                                                 
                                                 <Border Style="{StaticResource EventCard}">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Driver Map" Foreground="White" FontWeight="SemiBold" />
-                                                        <TextBlock Text="Snapshot stored to baseline library." Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap" />
-                                                    </StackPanel>
+                                                    <DockPanel>
+                                                        <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding SecureBootStatus, StringFormat=Secure Boot {0}}" Foreground="#D4D4D8" VerticalAlignment="Center"/>
+                                                    </DockPanel>
                                                 </Border>
-                                                
-                                                <Border Style="{StaticResource EventCard}" Margin="0">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Watchdog" Foreground="White" FontWeight="SemiBold" />
-                                                        <TextBlock Text="Runtime monitoring resumed with hardened profile." Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap" />
-                                                    </StackPanel>
+                                                <Border Style="{StaticResource EventCard}">
+                                                    <DockPanel>
+                                                        <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding CoreIntegrityStatus, StringFormat=Core Integrity {0}}" Foreground="#D4D4D8" VerticalAlignment="Center"/>
+                                                    </DockPanel>
+                                                </Border>
+                                                <Border Style="{StaticResource EventCard}">
+                                                    <DockPanel>
+                                                        <Ellipse Width="8" Height="8" Fill="#6366F1" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding WatchdogStatus, StringFormat=Watchdog {0}}" Foreground="#D4D4D8" VerticalAlignment="Center"/>
+                                                    </DockPanel>
                                                 </Border>
                                             </StackPanel>
                                         </Border>
                                     </Grid>
-                                </Grid>
+                                </StackPanel>
                             </TabItem>
-
-                            <TabItem Header="Hardware" Style="{StaticResource DashboardTabItemStyle}">
-                                <Grid Margin="0,16,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Style="{StaticResource PanelCard}">
-                                        <StackPanel>
-                                            <TextBlock Text="Processor" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                                            <TextBlock Text="{Binding ProcessorInfo}" Foreground="{StaticResource SubtleTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                                            <TextBlock Text="{Binding ProcessorCores}" Foreground="{StaticResource SubtleTextBrush}" />
-                                            <TextBlock Text="{Binding ProcessorSpeed}" Foreground="{StaticResource SubtleTextBrush}" />
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Grid.Column="1" Style="{StaticResource PanelCard}" Margin="18,0,0,0">
-                                        <StackPanel>
-                                            <TextBlock Text="Graphics" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                                            <TextBlock Text="{Binding GraphicsCard}" Foreground="{StaticResource SubtleTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                                            <TextBlock Text="{Binding GraphicsDriver}" Foreground="{StaticResource SubtleTextBrush}" />
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
+                            
+                            <!-- Other tabs placeholders -->
+                            <TabItem Header="Hardware">
+                                <TextBlock Text="Hardware View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </TabItem>
-
-                            <TabItem Header="Processes" Style="{StaticResource DashboardTabItemStyle}">
-                                <Border Margin="0,16,0,0" Style="{StaticResource PanelCard}">
-                                    <StackPanel>
-                                        <TextBlock Text="Process Inspector" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                                        <TextBlock Text="Track runtime state, handles, and threads in real time." Foreground="{StaticResource SubtleTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
+                            <TabItem Header="Processes">
+                                <TextBlock Text="Processes View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </TabItem>
-
-                            <TabItem Header="Integrity" Style="{StaticResource DashboardTabItemStyle}">
-                                <Border Margin="0,16,0,0" Style="{StaticResource PanelCard}">
-                                    <StackPanel>
-                                        <TextBlock Text="Integrity Suite" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                                        <TextBlock Text="Run file, registry, firmware, and kernel patch verification from here." Foreground="{StaticResource SubtleTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
+                             <TabItem Header="Integrity">
+                                <TextBlock Text="Integrity View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </TabItem>
-
-                            <TabItem Header="Diagnostics" Style="{StaticResource DashboardTabItemStyle}">
-                                <Border Margin="0,16,0,0" Style="{StaticResource PanelCard}">
-                                    <StackPanel>
-                                        <TextBlock Text="Diagnostics Lab" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                                        <TextBlock Text="Schedule stress tests, thermal sweeps, and performance captures." Foreground="{StaticResource SubtleTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
+                             <TabItem Header="Diagnostics">
+                                <TextBlock Text="Diagnostics View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </TabItem>
-
-                            <TabItem Header="Extensions" Style="{StaticResource DashboardTabItemStyle}">
-                                <Border Margin="0,16,0,0" Style="{StaticResource PanelCard}">
-                                    <StackPanel>
-                                        <TextBlock Text="Extensions" Foreground="White" FontSize="16" FontWeight="SemiBold" />
-                                        <TextBlock Text="Manage optional tooling, partner modules, and automation scripts." Foreground="{StaticResource SubtleTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
+                             <TabItem Header="Extensions">
+                                <TextBlock Text="Extensions View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </TabItem>
                         </TabControl>
-                    </Border>
-                </Grid>
-            </ScrollViewer>
-        </Border>
-    </Grid>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Border>
 </Window>

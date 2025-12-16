@@ -7,26 +7,62 @@
     <funcs:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
     <!-- Color Brushes -->
-    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#080C15" />
+    <!-- Color Brushes -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#050505" />
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#0A0A0A" />
     <LinearGradientBrush x:Key="AccentBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#5B9BFC" Offset="0" />
-        <GradientStop Color="#8F6BFF" Offset="1" />
+        <GradientStop Color="#6366F1" Offset="0" />
+        <GradientStop Color="#8B5CF6" Offset="1" />
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="CardBrush" Color="#111824" />
-    <SolidColorBrush x:Key="SubtleTextBrush" Color="#7D8AA5" />
+    <SolidColorBrush x:Key="CardBrush" Color="#111111" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#1F1F1F" />
+    <SolidColorBrush x:Key="SubtleTextBrush" Color="#A1A1AA" />
+    <SolidColorBrush x:Key="HoverBrush" Color="#18181B" />
+
+    <!-- Window Control Button Style -->
+    <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+        <Setter Property="Foreground" Value="#71717A" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Width" Value="46" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#1F1F1F" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource TitleBarButtonStyle}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#DC2626" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 
     <!-- Navigation Button Style -->
     <Style x:Key="NavButtonStyle" TargetType="Button">
-        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Foreground" Value="#A1A1AA" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Margin" Value="0,4" />
+        <Setter Property="Margin" Value="0,2" />
         <Setter Property="Padding" Value="16 10" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="6">
                         <ContentPresenter VerticalAlignment="Center" />
                     </Border>
                 </ControlTemplate>
@@ -34,10 +70,11 @@
         </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#1B2435" />
+                <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+                <Setter Property="Foreground" Value="White" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#232E44" />
+                <Setter Property="Background" Value="#27272A" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -81,14 +118,23 @@
     <!-- Metric Card Style -->
     <Style x:Key="MetricCard" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource CardBrush}" />
-        <Setter Property="CornerRadius" Value="14" />
-        <Setter Property="Padding" Value="18" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="20" />
         <Setter Property="Margin" Value="0,0,16,0" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="4" Opacity="0.2" />
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Info Card Style -->
     <Style x:Key="InfoCard" TargetType="Border">
-        <Setter Property="Background" Value="#111A2A" />
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="16" />
         <Setter Property="Margin" Value="0,0,12,0" />
@@ -96,17 +142,24 @@
 
     <!-- Panel Card Style -->
     <Style x:Key="PanelCard" TargetType="Border">
-        <Setter Property="Background" Value="#111A2A" />
-        <Setter Property="CornerRadius" Value="14" />
-        <Setter Property="Padding" Value="16" />
-        <Setter Property="BorderBrush" Value="#172033" />
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="4" Opacity="0.2" />
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Event Card Style -->
     <Style x:Key="EventCard" TargetType="Border">
-        <Setter Property="Background" Value="#131C2C" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Background" Value="#0F0F0F" />
+        <Setter Property="BorderBrush" Value="#1F1F1F" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12" />
         <Setter Property="Margin" Value="0,0,0,10" />
     </Style>

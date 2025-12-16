@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Management;
@@ -5,6 +6,13 @@ using System.Runtime.CompilerServices;
 using System.Timers;
 
 namespace OpenCoreX.Dashboard.Functions;
+
+public class GpuItem
+{
+    public string Name { get; set; } = "Unknown GPU";
+    public string Usage { get; set; } = "N/A";
+    public string Memory { get; set; } = "N/A";
+}
 
 /// <summary>
 /// ViewModel for the Dashboard providing live system data.
@@ -19,13 +27,11 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
     private readonly DateTime _startTime;
     private bool _disposed;
 
-    // CPU & Health
-    private string _cpuHealth = "Loading...";
-    private int _cpuHealthPercent = 0;
+    // GPU
+    private int _gpuUsagePercent = 0;
     
-    // Thermals
-    private string _thermalStatus = "Loading...";
-    private string _peakTemperature = "Checking...";
+    // CPU
+    private int _cpuUsagePercent = 0;
     
     // Memory
     private int _memoryUsagePercent = 0;
@@ -33,13 +39,13 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
     
     // Uptime
     private string _uptime = "00:00:00";
-    private string _lastDeepScan = "Not yet";
-    private int _systemIntegrity = 0;
 
     // Platform Info
     private string _platformName = "Loading...";
     private string _kernelVersion = "Loading...";
+
     private string _secureBootStatus = "Checking...";
+    private string _userName = "User";
 
     // Hardware Info
     private string _processorInfo = "Loading...";
@@ -48,9 +54,16 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
     private string _graphicsCard = "Loading...";
     private string _graphicsDriver = "Loading...";
 
+    public ObservableCollection<GpuItem> GpuList { get; } = new();
+
+    // Status
+    private string _coreIntegrityStatus = "Verified";
+    private string _watchdogStatus = "Active";
+
     public DashboardViewModel()
     {
         _startTime = DateTime.Now;
+        UserName = Environment.UserName;
 
         // Initialize performance counters
         try
@@ -102,12 +115,29 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
             }
 
             // Get Graphics Info
+            GpuList.Clear();
             using var gpuQuery = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
             foreach (var gpu in gpuQuery.Get())
             {
-                GraphicsCard = gpu["Name"]?.ToString() ?? "Unknown";
+                var name = gpu["Name"]?.ToString() ?? "Unknown";
+                GraphicsCard = name; // Last one wins for summary
                 GraphicsDriver = $"Driver {gpu["DriverVersion"]}";
-                break; // Get first GPU only
+
+                // Try to get VRAM
+                string vram = "Unknown";
+                try
+                {
+                    var ramBytes = Convert.ToInt64(gpu["AdapterRAM"]);
+                    vram = $"{ramBytes / (1024 * 1024)} MB";
+                }
+                catch { }
+
+                GpuList.Add(new GpuItem
+                {
+                    Name = name,
+                    Usage = "N/A", // Usage difficult via WMI
+                    Memory = vram
+                });
             }
 
             // Check Secure Boot
@@ -151,15 +181,7 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
             if (_cpuCounter != null)
             {
                 var cpuUsage = (int)_cpuCounter.NextValue();
-                CpuHealthPercent = Math.Max(0, Math.Min(100, 100 - cpuUsage)); // Invert for "health"
-                
-                CpuHealth = cpuUsage switch
-                {
-                    < 30 => "Excellent",
-                    < 60 => "Stable",
-                    < 80 => "Moderate",
-                    _ => "High Load"
-                };
+                CpuUsagePercent = cpuUsage;
             }
 
             // Update Memory
@@ -168,29 +190,24 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
                 var availableMB = _ramCounter.NextValue();
                 var totalMemoryBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
                 var totalMemoryGB = totalMemoryBytes / (1024.0 * 1024 * 1024);
-                var usedMemoryGB = totalMemoryGB - (availableMB / 1024.0);
                 
-                MemoryUsagePercent = (int)((usedMemoryGB / totalMemoryGB) * 100);
-                MemoryUsageDetails = $"{usedMemoryGB:F1} GB / {totalMemoryGB:F1} GB";
+                if (totalMemoryGB > 0)
+                {
+                    var usedMemoryGB = totalMemoryGB - (availableMB / 1024.0);
+                    MemoryUsagePercent = (int)((usedMemoryGB / totalMemoryGB) * 100);
+                    MemoryUsageDetails = $"{usedMemoryGB:F1} GB / {totalMemoryGB:F1} GB";
+                }
+                else
+                {
+                    MemoryUsagePercent = 0;
+                    MemoryUsageDetails = "Unknown";
+                }
             }
 
             // Update Uptime
             var uptime = DateTime.Now - _startTime + TimeSpan.FromMilliseconds(Environment.TickCount64);
             uptime = TimeSpan.FromMilliseconds(Environment.TickCount64);
             Uptime = $"{(int)uptime.TotalHours:D2}:{uptime.Minutes:D2}:{uptime.Seconds:D2}";
-
-            // Update Thermals (simulated as Windows doesn't provide easy thermal access)
-            ThermalStatus = CpuHealthPercent switch
-            {
-                > 70 => "Cool",
-                > 40 => "Moderate",
-                _ => "Warm"
-            };
-            PeakTemperature = $"Est. {50 + (100 - CpuHealthPercent) / 3}°C";
-
-            // Update System Integrity (simulated based on system state)
-            SystemIntegrity = Math.Min(100, 70 + new Random().Next(0, 10));
-            LastDeepScan = $"{(int)(DateTime.Now - _startTime).TotalMinutes} minutes ago";
         }
         catch
         {
@@ -200,28 +217,16 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
 
     #region Properties
 
-    public string CpuHealth
+    public int GpuUsagePercent
     {
-        get => _cpuHealth;
-        set => SetProperty(ref _cpuHealth, value);
+        get => _gpuUsagePercent;
+        set => SetProperty(ref _gpuUsagePercent, value);
     }
 
-    public int CpuHealthPercent
+    public int CpuUsagePercent
     {
-        get => _cpuHealthPercent;
-        set => SetProperty(ref _cpuHealthPercent, value);
-    }
-
-    public string ThermalStatus
-    {
-        get => _thermalStatus;
-        set => SetProperty(ref _thermalStatus, value);
-    }
-
-    public string PeakTemperature
-    {
-        get => _peakTemperature;
-        set => SetProperty(ref _peakTemperature, value);
+        get => _cpuUsagePercent;
+        set => SetProperty(ref _cpuUsagePercent, value);
     }
 
     public int MemoryUsagePercent
@@ -242,18 +247,6 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
         set => SetProperty(ref _uptime, value);
     }
 
-    public string LastDeepScan
-    {
-        get => _lastDeepScan;
-        set => SetProperty(ref _lastDeepScan, value);
-    }
-
-    public int SystemIntegrity
-    {
-        get => _systemIntegrity;
-        set => SetProperty(ref _systemIntegrity, value);
-    }
-
     public string PlatformName
     {
         get => _platformName;
@@ -270,6 +263,12 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _secureBootStatus;
         set => SetProperty(ref _secureBootStatus, value);
+    }
+
+    public string UserName
+    {
+        get => _userName;
+        set => SetProperty(ref _userName, value);
     }
 
     public string ProcessorInfo
@@ -300,6 +299,18 @@ public class DashboardViewModel : INotifyPropertyChanged, IDisposable
     {
         get => _graphicsDriver;
         set => SetProperty(ref _graphicsDriver, value);
+    }
+
+    public string CoreIntegrityStatus
+    {
+        get => _coreIntegrityStatus;
+        set => SetProperty(ref _coreIntegrityStatus, value);
+    }
+
+    public string WatchdogStatus
+    {
+        get => _watchdogStatus;
+        set => SetProperty(ref _watchdogStatus, value);
     }
 
     #endregion
