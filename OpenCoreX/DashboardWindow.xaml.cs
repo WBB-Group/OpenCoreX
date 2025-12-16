@@ -10,7 +10,7 @@ public partial class DashboardWindow : Window
     public DashboardWindow()
     {
         InitializeComponent();
-        
+
         _viewModel = new DashboardViewModel();
         DataContext = _viewModel;
     }
@@ -63,7 +63,7 @@ public partial class DashboardWindow : Window
         // Show Loading Overlay
         LoadingOverlay.Visibility = Visibility.Visible;
         LoadingStatus.Text = "Generating optimization script...";
-        
+
         // Reset Terminal
 
 
@@ -94,6 +94,7 @@ public partial class DashboardWindow : Window
             DisableFeedbackNotif = chkFeedbackNotif.IsChecked == true,
             RestrictBackgroundApps = chkBackgroundApps.IsChecked == true,
             DisableStartSuggestions = chkStartSuggestions.IsChecked == true,
+            DisableWindowsUpdate = chkWindowsUpdate.IsChecked == true,
 
             EnableUltimatePerformance = chkPowerPlan.IsChecked == true,
             DisableGameDVR = chkGameDVR.IsChecked == true,
@@ -112,14 +113,14 @@ public partial class DashboardWindow : Window
         var animation = new System.Windows.Media.Animation.DoubleAnimation
         {
             From = 0,
-            To = 350, 
+            To = 350,
             Duration = TimeSpan.FromSeconds(2),
             EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseInOut }
         };
         LoadingProgress.BeginAnimation(FrameworkElement.WidthProperty, animation);
 
         LoadingStatus.Text = "Executing optimizations...";
-        
+
         // Execute Script
         await service.ExecuteScriptAsync(script, (output) =>
         {
@@ -134,7 +135,7 @@ public partial class DashboardWindow : Window
         LoadingStatus.Text = "Finalizing...";
         await Task.Delay(500);
         LoadingOverlay.Visibility = Visibility.Collapsed;
-        
+
         // Reset Progress Bar
         LoadingProgress.BeginAnimation(FrameworkElement.WidthProperty, null);
         LoadingProgress.Width = 0;

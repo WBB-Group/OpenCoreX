@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace OpenCoreX.Dashboard.Functions
 {
@@ -35,6 +37,8 @@ namespace OpenCoreX.Dashboard.Functions
         public bool RestrictBackgroundApps { get; set; }
         public bool DisableStartSuggestions { get; set; }
 
+        // Privacy
+        public bool DisableWindowsUpdate { get; set; }
         // Gaming & Performance
         public bool EnableUltimatePerformance { get; set; }
         public bool DisableGameDVR { get; set; }
@@ -47,6 +51,34 @@ namespace OpenCoreX.Dashboard.Functions
 
     public class DebloaterService
     {
+        private bool IsAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
+        private void RestartAsAdmin()
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = Process.GetCurrentProcess().MainModule.FileName,
+                UseShellExecute = true,
+                Verb = "runas"
+            };
+            try
+            {
+                Process.Start(startInfo);
+                Application.Current.Shutdown();
+            }
+            catch (Exception)
+            {
+                // User cancelled the UAC prompt
+            }
+        }
+
         public string GenerateScript(DebloatOptions options)
         {
             var sb = new StringBuilder();
@@ -137,7 +169,7 @@ namespace OpenCoreX.Dashboard.Functions
             if (options.DisableCortanaVoice)
             {
                 sb.AppendLine("Write-Host 'Disabling Cortana Voice...'");
-                 sb.AppendLine("Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -Type DWord -Value 0");
+                sb.AppendLine("Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -Type DWord -Value 0");
             }
 
             if (options.DisableErrorReporting)
@@ -150,6 +182,30 @@ namespace OpenCoreX.Dashboard.Functions
             {
                 sb.AppendLine("Write-Host 'Disabling Feedback Notifications...'");
                 sb.AppendLine("Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'DoNotShowFeedbackNotifications' -Type DWord -Value 1");
+            }
+
+            if (options.RestrictBackgroundApps)
+            {
+                sb.AppendLine("Write-Host 'Restricting Background Apps...'");
+                sb.AppendLine("New-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AppPrivacy' -Force");
+                sb.AppendLine("Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AppPrivacy' -Name 'LetAppsRunInBackground' -Type DWord -Value 2");
+                sb.AppendLine("Write-Host 'Background Apps restricted.' -ForegroundColor Green");
+            }
+
+            if (options.DisableStartSuggestions)
+            {
+                sb.AppendLine("Write-Host 'Disabling Start Menu Suggestions...'");
+                sb.AppendLine("Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name 'SystemPaneSuggestionsEnabled' -Type DWord -Value 0");
+                sb.AppendLine("Write-Host 'Start Menu Suggestions disabled.' -ForegroundColor Green");
+            }
+
+            if (options.DisableWindowsUpdate)
+            {
+                sb.AppendLine("Write-Host 'Disabling Windows Update...'");
+                sb.AppendLine("Stop-Service -Name wuauserv -Force");
+                sb.AppendLine("Set-Service -Name wuauserv -StartupType Disabled");
+                sb.AppendLine("New-NetFirewallRule -DisplayName 'Block Windows Update' -Direction Outbound -RemoteAddress ('2.22.148.115', '2.22.148.116', '68.232.34.250', '96.17.16.148', 'sls.update.microsoft.com', 'fe2.update.microsoft.com', 'fe3.delivery.dsp.mp.microsoft.com', 'wustat.windows.com', 'windowsupdate.microsoft.com', 'update.microsoft.com') -Action Block");
+                sb.AppendLine("Write-Host 'Windows Update Disabled.' -ForegroundColor Green");
             }
 
             // --- Gaming & Performance ---
@@ -179,12 +235,21 @@ namespace OpenCoreX.Dashboard.Functions
                 sb.AppendLine("Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize' -Name 'EnableTransparency' -Type DWord -Value 0");
             }
 
-             if (options.DisableStickyKeys)
+            if (options.DisableMouseAccel)
+            {
+                sb.AppendLine("Write-Host 'Disabling Mouse Acceleration...'");
+                sb.AppendLine("Set-ItemProperty -Path 'HKCU:\\Control Panel\\Mouse' -Name 'MouseSpeed' -Type String -Value '0'");
+                sb.AppendLine("Set-ItemProperty -Path 'HKCU:\\Control Panel\\Mouse' -Name 'MouseThreshold1' -Type String -Value '0'");
+                sb.AppendLine("Set-ItemProperty -Path 'HKCU:\\Control Panel\\Mouse' -Name 'MouseThreshold2' -Type String -Value '0'");
+                sb.AppendLine("Write-Host 'Mouse Acceleration disabled.' -ForegroundColor Green");
+            }
+
+            if (options.DisableStickyKeys)
             {
                 sb.AppendLine("Write-Host 'Disabling Sticky Keys...'");
                 sb.AppendLine("Set-ItemProperty -Path 'HKCU:\\Control Panel\\Accessibility\\StickyKeys' -Name 'Flags' -Type String -Value '506'");
             }
-            
+
             if (options.OptimizeNetwork)
             {
                 sb.AppendLine("Write-Host 'Optimizing Network Throttling...'");
@@ -196,12 +261,22 @@ namespace OpenCoreX.Dashboard.Functions
             sb.AppendLine("Write-Host '----------------------------------------'");
             sb.AppendLine("Write-Host 'Operation Completed Successfully.' -ForegroundColor Green");
             sb.AppendLine("Write-Host 'Some changes may require a system restart.' -ForegroundColor Yellow");
-            
+            sb.AppendLine("");
+            sb.AppendLine("Write-Host 'Press any key to close this window...'");
+            sb.AppendLine("$Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') | Out-Null");
+
             return sb.ToString();
         }
 
         public async Task ExecuteScriptAsync(string script, Action<string> outputCallback)
         {
+            if (!IsAdministrator())
+            {
+                MessageBox.Show("This action requires administrator privileges. Restarting as admin.", "Admin Required", MessageBoxButton.OK, MessageBoxImage.Information);
+                RestartAsAdmin();
+                return;
+            }
+
             await Task.Run(async () =>
             {
                 string tempFilePath = null;
@@ -215,12 +290,12 @@ namespace OpenCoreX.Dashboard.Functions
                         // Simulation Mode for Non-Windows (e.g. Linux Sandbox)
                         outputCallback("Environment detected: Non-Windows. Running in Simulation Mode.\n");
                         outputCallback("------------------------------------------------------------\n");
-                        
+
                         var lines = script.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
                         foreach (var line in lines)
                         {
                             if (string.IsNullOrWhiteSpace(line)) continue;
-                            
+
                             // Emulate delay
                             if (line.Contains("Start-Sleep"))
                             {
@@ -252,21 +327,13 @@ namespace OpenCoreX.Dashboard.Functions
                     {
                         FileName = "powershell.exe",
                         Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{tempFilePath}\"",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
                         UseShellExecute = false,
-                        CreateNoWindow = true
+                        CreateNoWindow = false
                     };
 
                     using (var process = new Process { StartInfo = startInfo })
                     {
-                        process.OutputDataReceived += (sender, e) => { if (e.Data != null) outputCallback(e.Data + "\n"); };
-                        process.ErrorDataReceived += (sender, e) => { if (e.Data != null) outputCallback("ERROR: " + e.Data + "\n"); };
-
                         process.Start();
-                        process.BeginOutputReadLine();
-                        process.BeginErrorReadLine();
-
                         await process.WaitForExitAsync();
                     }
                 }
