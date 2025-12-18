@@ -36,10 +36,25 @@ namespace OpenCoreX.Dashboard.SplashScreen
 
             await Task.Delay(200); // Tiny pause at 100%
 
+            // Animate transition
+            var fadeOut = (Storyboard)this.Resources["FadeOutAnimation"];
+            fadeOut.Completed += FadeOut_Completed;
+            fadeOut.Begin(this);
+        }
+
+        private void FadeOut_Completed(object sender, EventArgs e)
+        {
             // Open Main Window
             var mainWindow = new DashboardWindow();
             Application.Current.MainWindow = mainWindow;
+            
+            // Set initial opacity to 0 and show
+            mainWindow.Opacity = 0;
             mainWindow.Show();
+            
+            // Trigger FadeIn on Main Window
+            mainWindow.AnimateIn();
+
             this.Close();
         }
 

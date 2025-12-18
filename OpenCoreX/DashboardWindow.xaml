@@ -19,6 +19,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Dashboard/Styles/DashboardStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            
+            <Storyboard x:Key="FadeInAnimation">
+                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.5" />
+            </Storyboard>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -76,7 +80,7 @@
                             <Button Content="Processes" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="2" />
                             <Button Content="Integrity" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="3" />
                             <Button Content="Diagnostics" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="4" />
-                            <Button Content="Extensions" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="5" />
+                            <Button Content="Installer" Style="{StaticResource NavButtonStyle}" Click="NavButton_Click" Tag="5" />
                         </StackPanel>
                         
                     </DockPanel>
@@ -223,13 +227,75 @@
                                 <TextBlock Text="Processes View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </TabItem>
                              <TabItem Header="Integrity">
-                                <TextBlock Text="Integrity View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <StackPanel>
+                                    <TextBlock Text="System Integrity Checker" FontSize="20" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,16"/>
+                                    <TextBlock Text="Scan and repair system files and registry using Windows Integrity Tools." Foreground="{StaticResource SubtleTextBrush}" Margin="0,0,0,24"/>
+                                    
+                                    <Border Style="{StaticResource PanelCard}">
+                                        <StackPanel>
+                                            <Button Content="Start System Repair" Click="StartRepair_Click" HorizontalAlignment="Left" Padding="20,10" Background="{StaticResource AccentBrush}" Foreground="White" BorderThickness="0" Cursor="Hand">
+                                                <Button.Resources>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                    </Style>
+                                                </Button.Resources>
+                                            </Button>
+
+                                            <StackPanel x:Name="IntegrityProgressPanel" Visibility="Collapsed" Margin="0,24,0,0">
+                                                <TextBlock x:Name="IntegrityStatusText" Text="Initializing..." Foreground="White" Margin="0,0,0,8"/>
+                                                <Grid>
+                                                    <Border Height="6" Background="#1C2232" CornerRadius="3" />
+                                                    <Border x:Name="IntegrityProgressBar" HorizontalAlignment="Left" Width="0" Height="6" Background="{StaticResource AccentBrush}" CornerRadius="3"/>
+                                                </Grid>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
                             </TabItem>
                              <TabItem Header="Diagnostics">
                                 <TextBlock Text="Diagnostics View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </TabItem>
-                             <TabItem Header="Extensions">
-                                <TextBlock Text="Extensions View" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                             <TabItem Header="Installer">
+                                <StackPanel>
+                                    <TextBlock Text="Software Installer" FontSize="20" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,16"/>
+                                    <TextBlock Text="Auto-download and install essential tools." Foreground="{StaticResource SubtleTextBrush}" Margin="0,0,0,24"/>
+                                    
+                                    <ListView x:Name="InstallerList" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListViewItem">
+                                                            <Border Background="{TemplateBinding Background}" BorderBrush="#1C2232" BorderThickness="1" CornerRadius="8" Margin="0,0,0,12" Padding="16">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <StackPanel>
+                                                                        <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold" FontSize="16"/>
+                                                                        <TextBlock Text="{Binding Description}" Foreground="{StaticResource SubtleTextBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                                                    </StackPanel>
+                                                                    <Button Grid.Column="1" Content="Install" Tag="{Binding}" Click="InstallProgram_Click" 
+                                                                            Background="#1C2232" Foreground="White" BorderThickness="0" Padding="16,8" Cursor="Hand" VerticalAlignment="Center">
+                                                                         <Button.Resources>
+                                                                            <Style TargetType="Border">
+                                                                                <Setter Property="CornerRadius" Value="6"/>
+                                                                            </Style>
+                                                                        </Button.Resources>
+                                                                    </Button>
+                                                                </Grid>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+                                    
+                                    <TextBlock x:Name="InstallerStatusText" Foreground="{StaticResource AccentBrush}" Margin="0,10,0,0" FontWeight="SemiBold"/>
+                                </StackPanel>
                             </TabItem>
                         </TabControl>
                     </Grid>
